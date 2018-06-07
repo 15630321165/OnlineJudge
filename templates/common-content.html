@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block js_media %}
+    <script src="{{ static('libs/clipboard/clipboard.min.js') }}"></script>
     {% compress js %}
-        <script src="{{ static('libs/clipboard/clipboard.js') }}"></script>
         <script src="{{ static('libs/clipboard/tooltip.js') }}"></script>
         <script type="text/javascript">
             $(function () {
@@ -38,7 +38,7 @@
                         $(this).removeAttr('aria-label');
                     });
 
-                    var curClipboard = new Clipboard(copyButton.get(0));
+                    var curClipboard = new ClipboardJS(copyButton.get(0));
 
                     curClipboard.on('success', function (e) {
                         e.clearSelection();

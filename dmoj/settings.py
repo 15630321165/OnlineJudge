@@ -1,11 +1,6 @@
 """
-Django settings for dmoj project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.11/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.11/ref/settings/
+Django settings for hbuoj project.
+@author
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -17,9 +12,6 @@ from django_jinja.builtins import DEFAULT_EXTENSIONS
 from jinja2 import select_autoescape
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '5*9f5q57mqmlz2#f$x1h76&jxy#yortjl1v+l*6hd18$d*yx#0'
@@ -56,12 +48,12 @@ INSTALLED_APPS = (
     'social_django',
     'compressor',
     'django_ace',
-    'pagedown',
     'sortedm2m',
     'statici18n',
     'impersonate',
     'django_jinja',
     'import_export',
+    'martor',
 )
 
 MIDDLEWARE = (
@@ -170,6 +162,58 @@ LANGUAGES = [
     ('en', _('English')),
 ]
 
+# Global martor settings
+# Input: string boolean, `true/false`
+MARTOR_ENABLE_CONFIGS = {
+    'imgur': 'true',  # to enable/disable imgur/custom uploader.
+    'mention': 'true',  # to enable/disable mention
+    'jquery': 'true',  # to include/revoke jquery (require for admin default django)
+    'mathjax': 'true',
+}
+
+# To setup the martor editor with label or not (default is False)
+MARTOR_ENABLE_LABEL = True
+
+# Imgur API Keys
+MARTOR_IMGUR_CLIENT_ID = 'your-client-id'
+MARTOR_IMGUR_API_KEY = 'your-api-key'
+
+# Safe Mode
+MARTOR_MARKDOWN_SAFE_MODE = True  # default
+
+# Markdownify
+MARTOR_MARKDOWNIFY_FUNCTION = 'martor.utils.markdownify'  # default
+MARTOR_MARKDOWNIFY_URL = '/widgets/martor/markdownify/'  # default
+
+# Markdown extensions (default)
+MARTOR_MARKDOWN_EXTENSIONS = [
+    'markdown.extensions.extra',
+    'markdown.extensions.nl2br',
+    'markdown.extensions.smarty',
+    'markdown.extensions.fenced_code',
+
+    # Custom markdown extensions.
+    'martor.extensions.urlize',
+    'martor.extensions.del_ins',  # ~~strikethrough~~ and ++underscores++
+    'martor.extensions.mention',  # require for mention
+    'martor.extensions.emoji',  # require for emoji
+    'martor.extensions.mdx_math',
+]
+
+# Markdown Extensions Configs
+MARTOR_MARKDOWN_EXTENSION_CONFIGS = {
+    'martor.extensions.mdx_math':
+        {'enable_dollar_delimiter': True, }
+}
+
+# Markdown urls
+MARTOR_UPLOAD_URL = '/martor/uploader/'  # default
+MARTOR_SEARCH_USERS_URL = '/martor/search-user/'  # default
+
+# Markdown Extensions
+MARTOR_MARKDOWN_BASE_EMOJI_URL = 'https://assets-cdn.github.com/images/icons/emoji/'  # default
+MARTOR_MARKDOWN_BASE_MENTION_URL = 'https://python.web.id/author/'  # default (change this)
+
 MARKDOWN_ADMIN_EDITABLE_STYLE = {
     'safe_mode': False,
     'use_camo': True,
@@ -255,7 +299,9 @@ SESSION_CACHE_ALIAS = 'default'
 # CDN control.
 # Base URL for a copy of ace editor.
 # Should contain ace.js, along with mode-*.js.
-ACE_URL = '//cdn.bootcss.com/ace/1.3.1/'
+ACE_BASE_URL = '//cdn.bootcss.com/ace/1.3.1/'
+HIGHLIGHT_BASE_URL = '//cdn.bootcss.com/highlight.js/9.12.0/'
+MATHJAX_URL = '//cdn.bootcss.com/mathjax/2.7.4/MathJax.js'
 JQUERY_JS = '//cdn.bootcss.com/jquery/2.2.4/jquery.min.js'
 SELECT2_JS_URL = '//cdn.bootcss.com/select2/4.0.3/js/select2.min.js'
 SELECT2_CSS_URL = '//cdn.bootcss.com/select2/4.0.3/css/select2.min.css'

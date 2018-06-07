@@ -1,13 +1,19 @@
+from django.conf import settings
 from django.contrib import admin
 from django.forms import ModelForm
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _, ugettext, ungettext
+from martor.widgets import AdminMartorWidget
 from reversion.admin import VersionAdmin
 from suit import apps
 
 from django_ace import AceWidget
 from judge.models import Profile
-from judge.widgets import Select2Widget, AdminPagedownWidget
+from judge.widgets import Select2Widget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
+MATHJAX_URL = getattr(settings, 'MATHJAX_URL', '//cdn.bootcss.com/mathjax/2.7.4/MathJax.js')
 
 
 class ProfileForm(ModelForm):
@@ -24,9 +30,8 @@ class ProfileForm(ModelForm):
             'language': Select2Widget,
             'ace_theme': Select2Widget,
             'current_contest': Select2Widget,
+            'about': AdminMartorWidget,
         }
-        if AdminPagedownWidget is not None:
-            widgets['about'] = AdminPagedownWidget
 
 
 class TimezoneFilter(admin.SimpleListFilter):
@@ -60,13 +65,20 @@ class ProfileAdmin(VersionAdmin):
             'about': apps.SUIT_FORM_SIZE_FULL,
         },
         'widgets': {
-            'AdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL,
+            'AdminMartorWidget': apps.SUIT_FORM_SIZE_FULL,
             'AceWidget': apps.SUIT_FORM_SIZE_INLINE
         },
     }
 
     class Media:
-        js = ('libs/jquery-cookie.js',)
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+            MATHJAX_URL,
+        )
 
     def show_public(self, obj):
         return format_html(u'<a href="{0}" style="white-space:nowrap;">{1}</a>',

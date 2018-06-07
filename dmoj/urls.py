@@ -14,7 +14,7 @@ from judge.sitemap import ProblemSitemap, UserSitemap, HomePageSitemap, UrlSitem
     BlogPostSitemap, SolutionSitemap
 from judge.views import TitledTemplateView
 from judge.views import organization, language, status, blog, problem, mailgun, license, register, user, \
-    submission, widgets, comment, contests, api, ranked_submission, stats, preview, ticket
+    submission, widgets, comment, contests, api, ranked_submission, stats, ticket
 from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
     problem_data_file, problem_init_view
 from judge.views.register import RegistrationView, ActivationView, ResendActivationView
@@ -262,17 +262,7 @@ urlpatterns = [
             url(r'^ticket_assignee$', AssigneeSelect2View.as_view(), name='ticket_assignee_select2_ajax'),
         ])),
 
-        url(r'^preview/', include([
-            url(r'^problem$', preview.ProblemMarkdownPreviewView.as_view(), name='problem_preview'),
-            url(r'^blog$', preview.BlogMarkdownPreviewView.as_view(), name='blog_preview'),
-            url(r'^contest$', preview.ContestMarkdownPreviewView.as_view(), name='contest_preview'),
-            url(r'^comment$', preview.CommentMarkdownPreviewView.as_view(), name='comment_preview'),
-            url(r'^profile$', preview.ProfileMarkdownPreviewView.as_view(), name='profile_preview'),
-            url(r'^organization$', preview.OrganizationMarkdownPreviewView.as_view(), name='organization_preview'),
-            url(r'^solution$', preview.SolutionMarkdownPreviewView.as_view(), name='solution_preview'),
-            url(r'^license$', preview.LicenseMarkdownPreviewView.as_view(), name='license_preview'),
-            url(r'^ticket$', preview.TicketMarkdownPreviewView.as_view(), name='ticket_preview'),
-        ])),
+        url(r'^martor/', include('martor.urls')),
     ])),
 
     url(r'^feed/', include([

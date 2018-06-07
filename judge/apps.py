@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.db import DatabaseError
 from django.utils.translation import ugettext_lazy
+from suit import apps
 from suit.apps import DjangoSuitConfig
 from suit.menu import ParentItem, ChildItem
 
@@ -24,7 +25,11 @@ class JudgeAppConfig(AppConfig):
         from reversion.admin import VersionAdmin
 
         class FlatPageVersionAdmin(VersionAdmin, FlatPageAdmin):
-            pass
+            suit_form_size = {
+                'fields': {
+                    'content': apps.SUIT_FORM_SIZE_FULL
+                },
+            }
 
         admin.site.unregister(FlatPage)
         admin.site.register(FlatPage, FlatPageVersionAdmin)

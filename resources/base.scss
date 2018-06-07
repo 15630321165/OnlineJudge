@@ -17,11 +17,6 @@
   max-width: device-width;
 }
 
-body, ol, ul, h1, h2, h3, h4, h5, h6, p, th, td, dl, dd, form, fieldset, legend, input, textarea, select {
-  margin: 0;
-  padding: 0
-}
-
 em {
   font-style: normal
 }
@@ -151,7 +146,6 @@ body {
 
 b {
   font-weight: bold;
-
 }
 
 /*------------------------------------------------------------
@@ -167,10 +161,6 @@ h6 {
   margin: 0;
   font-weight: 400;
   font-family: -apple-system, BlinkMacSystemFont, Avenir, "Avenir Next", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-}
-
-h1, h2, h3 {
-  // letter-spacing: -.1rem;
 }
 
 h1 {
@@ -313,7 +303,7 @@ nav {
   top: 0;
   width: 100%;
   margin: 0 auto;
-  z-index: 2;
+  z-index: 1000;
   text-align: left;
 
   ul {

@@ -307,5 +307,4 @@
 {% block bodyend %}
     <iframe id="web-ide" src="{{ url('problem_submit', problem.code) }}" frameborder="0"></iframe>
     {{ super() }}
-    {% include "comments/math.html" %}
 {% endblock %}

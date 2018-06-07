@@ -1,21 +1,25 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.forms.models import ModelForm
-from django.http import HttpResponseForbidden, HttpResponseBadRequest, HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseBadRequest, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, UpdateView
+from martor.widgets import MartorWidget
 from reversion import revisions
 from reversion.models import Version
 
 from judge.dblock import LockModel
 from judge.models import Comment, CommentVote
 from judge.utils.views import TitleMixin
-from judge.widgets import MathJaxPagedownWidget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
 
 __all__ = ['upvote_comment', 'downvote_comment', 'CommentEditAjax', 'CommentContent',
            'CommentEdit']
@@ -103,8 +107,16 @@ class CommentEditForm(ModelForm):
     class Meta:
         model = Comment
         fields = ['title', 'body']
-        if MathJaxPagedownWidget is not None:
-            widgets = {'body': MathJaxPagedownWidget(attrs={'id': 'id-edit-comment-body'})}
+        widgets = {'body': MartorWidget(attrs={'id': 'id-edit-comment-body'})}
+
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+        )
 
 
 class CommentEditAjax(LoginRequiredMixin, CommentMixin, UpdateView):

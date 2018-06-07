@@ -6,6 +6,10 @@ from import_export.admin import ImportExportModelAdmin
 
 from judge.models import Profile, Language, Organization
 
+DEFAULT_USER_LANGUAGE = getattr(settings,
+                                'DEFAULT_USER_LANGUAGE',
+                                'CPP11')
+
 
 class UserResource(resources.ModelResource):
     name = fields.Field(attribute='profile__name')
@@ -13,16 +17,27 @@ class UserResource(resources.ModelResource):
     organizations = fields.Field(widget=widgets.ManyToManyWidget(model=Organization, field='key'),
                                  attribute='profile__organizations')
 
+    _profile = Profile(language=Language.objects.get(key=DEFAULT_USER_LANGUAGE))
+
     def init_instance(self, row=None):
         usr = super(UserResource, self).init_instance(row)
         usr.is_active = True
-        usr.profile = Profile(language=Language.objects.get(key=getattr(settings,
-                                                                        'DEFAULT_USER_LANGUAGE',
-                                                                        'CPP11')))
+        usr.profile = self._profile
         return usr
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        instance.set_password(instance.password)
+        if not using_transactions and dry_run:
+            # we don't have transactions and we want to do a dry_run
+            pass
+        else:
+            instance.set_password(instance.password)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        if not using_transactions and dry_run:
+            # we don't have transactions and we want to do a dry_run
+            pass
+        else:
+            Profile.objects.update_or_create(user=instance, defaults=self._profile)
 
     class Meta:
         model = User

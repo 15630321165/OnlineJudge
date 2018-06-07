@@ -1,34 +1,9 @@
 <script src="{{ static('libs/featherlight/featherlight.min.js') }}" type="text/javascript"></script>
+
 {% compress js %}
     {{ comment_form.media.js }}
-    {% if not REQUIRE_JAX %}
-        <script type="text/javascript">
-            $(function () {
-                $('#id_body').keypress(function () {
-                    if (!("MathJax" in window)) {
-                        $.ajax({
-                            type: "GET",
-                            url: '{{ static('mathjax_config.js') }}',
-                            dataType: "script",
-                            cache: true,
-                            success: function () {
-                                $.ajax({
-                                    type: "GET",
-                                    url: '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML',
-                                    dataType: "script",
-                                    cache: true,
-                                    success: function () {
-                                        mathjax_pagedown($);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            });
-        </script>
-    {% endif %}
     <script type="text/javascript">
+        $.featherlight.autoBind = false;
         $(document).ready(function () {
             window.comment_set_parent = function (parent) {
                 $('form#comment-submit input#id_parent').val(parent);
@@ -139,19 +114,8 @@
 
             $comments.find('a.edit-link').featherlight({
                 afterOpen: function () {
-                    if ('DjangoPagedown' in window) {
-                        var $wmd = $('.featherlight .wmd-input');
-                        if ($wmd.length) {
-                            window.DjangoPagedown.createEditor($wmd.get(0));
-                            if ('MathJax' in window) {
-                                var preview = $('.featherlight div.wmd-preview')[0];
-                                window.editors[$wmd.attr('id')].hooks.chain('onPreviewRefresh', function () {
-                                    MathJax.Hub.Queue(['Typeset', MathJax.Hub, preview]);
-                                });
-                                MathJax.Hub.Queue(['Typeset', MathJax.Hub, preview]);
-                            }
-                        }
-                    }
+                    $('.item').tab();
+                    $('.martor').martor();
                     $('#comment-edit').submit(function (event) {
                         event.preventDefault();
                         var id = $('#comment-edit').find('.comment-id').text();

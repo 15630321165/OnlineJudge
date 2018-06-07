@@ -133,12 +133,8 @@ def misc_config_update(sender, instance, **kwargs):
 @receiver(post_save, sender=User)
 def user_save(sender, instance, created, **kwargs):
     if created:
-        if isinstance(instance.profile, Profile):
-            instance.profile.user = instance
-            instance.profile.save()
-        else:
-            profile, _ = Profile.objects.get_or_create(user=instance, defaults={
-                'language': Language.objects.get(key=getattr(settings,
-                                                             'DEFAULT_USER_LANGUAGE',
-                                                             'C++11'))
-            })
+        profile, _ = Profile.objects.get_or_create(user=instance, defaults={
+            'language': Language.objects.get(key=getattr(settings,
+                                                         'DEFAULT_USER_LANGUAGE',
+                                                         'C++11'))
+        })

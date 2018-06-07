@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -7,19 +8,21 @@ from django.db.models.expressions import Value, F
 from django.db.models.functions import Coalesce
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin
 from django.views.generic.detail import SingleObjectMixin
+from martor.widgets import MartorWidget
 from reversion import revisions
 from reversion.models import Revision, Version
 
 from judge.dblock import LockModel
-from judge.models import Comment, Profile, CommentVote, Problem, Submission
+from judge.models import Comment, CommentVote
 from judge.utils.raw_sql import unique_together_left_join, RawSQLColumn
-from judge.widgets import HeavyPreviewPageDownWidget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
 
 
 class CommentForm(ModelForm):
@@ -28,11 +31,17 @@ class CommentForm(ModelForm):
         fields = ['title', 'body', 'parent']
         widgets = {
             'parent': forms.HiddenInput(),
+            'body': MartorWidget,
         }
 
-        if HeavyPreviewPageDownWidget is not None:
-            widgets['body'] = HeavyPreviewPageDownWidget(preview=reverse_lazy('comment_preview'),
-                                                         preview_timeout=1000, hide_preview_button=True)
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+        )
 
     def __init__(self, request, *args, **kwargs):
         self.request = request

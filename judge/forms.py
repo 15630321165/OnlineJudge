@@ -6,14 +6,16 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import ModelForm, CharField, TextInput
-from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
+from martor.widgets import MartorWidget
 
 from django_ace import AceWidget
 from judge.models import Organization, Profile, Submission, PrivateMessage, Language
 from judge.utils.subscription import newsletter_id
-from judge.widgets import MathJaxPagedownWidget, HeavyPreviewPageDownWidget, PagedownWidget, \
-    Select2Widget, Select2MultipleWidget
+from judge.widgets import Select2Widget, Select2MultipleWidget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
 
 
 def fix_unicode(string, unsafe=tuple(u'\u202a\u202b\u202d\u202e')):
@@ -34,21 +36,26 @@ class ProfileForm(ModelForm):
             'timezone': Select2Widget(attrs={'style': 'width:200px'}),
             'language': Select2Widget(attrs={'style': 'width:200px'}),
             'ace_theme': Select2Widget(attrs={'style': 'width:200px'}),
-            'math_engine': Select2Widget(attrs={'style': 'width:200px'})
+            'math_engine': Select2Widget(attrs={'style': 'width:200px'}),
+            'about': MartorWidget,
         }
 
-        if HeavyPreviewPageDownWidget is not None:
-            widgets['about'] = HeavyPreviewPageDownWidget(
-                preview=reverse_lazy('profile_preview'),
-                attrs={'style': 'max-width:700px;min-width:700px;width:700px'}
-            )
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+        )
 
     def clean(self):
         organizations = self.cleaned_data.get('organizations') or []
         max_orgs = getattr(settings, 'MAX_USER_ORGANIZATION_COUNT', 3)
 
         if sum(org.is_open for org in organizations) > max_orgs:
-            raise ValidationError(_('You may not be part of more than {count} public organizations.').format(count=max_orgs))
+            raise ValidationError(
+                _('You may not be part of more than {count} public organizations.').format(count=max_orgs))
 
         return self.cleaned_data
 
@@ -84,18 +91,16 @@ class EditOrganizationForm(ModelForm):
     class Meta:
         model = Organization
         fields = ['about', 'admins']
-        widgets = {'admins': Select2MultipleWidget()}
-        if HeavyPreviewPageDownWidget is not None:
-            widgets['about'] = HeavyPreviewPageDownWidget(preview=reverse_lazy('organization_preview'))
+        widgets = {'admins': Select2MultipleWidget(),
+                   'about': MartorWidget,
+                   }
 
 
 class NewMessageForm(ModelForm):
     class Meta:
         model = PrivateMessage
         fields = ['title', 'content']
-        widgets = {}
-        if PagedownWidget is not None:
-            widgets['content'] = MathJaxPagedownWidget()
+        widgets = {'content': MartorWidget}
 
 
 class NewOrganizationForm(EditOrganizationForm):

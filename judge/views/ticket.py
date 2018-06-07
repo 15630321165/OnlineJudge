@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured, ValidationError
 from django.http import Http404
@@ -11,7 +12,6 @@ from django.http import JsonResponse
 from django.template.defaultfilters import truncatechars
 from django.template.loader import get_template
 from django.urls import reverse
-from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 from django.utils.html import escape, format_html, linebreaks
 from django.utils.safestring import mark_safe
@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy, ugettext as _
 from django.views import View
 from django.views.generic import FormView, ListView
 from django.views.generic.detail import SingleObjectMixin
+from martor.widgets import MartorWidget
 
 from judge import event_poster as event
 from judge.models import Profile
@@ -26,11 +27,11 @@ from judge.models import Ticket, TicketMessage, Problem
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.tickets import own_ticket_filter, filter_visible_tickets
 from judge.utils.views import TitleMixin, paginate_query_context
-from judge.widgets import HeavyPreviewPageDownWidget
 
-ticket_widget = (forms.Textarea() if HeavyPreviewPageDownWidget is None else
-                 HeavyPreviewPageDownWidget(preview=reverse_lazy('ticket_preview'),
-                                            preview_timeout=1000, hide_preview_button=True))
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
+
+ticket_widget = MartorWidget
 
 
 class TicketForm(forms.Form):
@@ -49,6 +50,15 @@ class TicketForm(forms.Form):
             if profile.mute:
                 raise ValidationError(_('Your part is silent, little toad.'))
         return super(TicketForm, self).clean()
+
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+        )
 
 
 class SingleObjectFormView(SingleObjectMixin, FormView):
@@ -109,6 +119,15 @@ class NewProblemTicketView(TitleMixin, NewTicketView):
 
 class TicketCommentForm(forms.Form):
     body = forms.CharField(widget=ticket_widget)
+
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+        )
 
 
 class TicketMixin(object):

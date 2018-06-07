@@ -105,7 +105,6 @@ class SubmissionAdmin(admin.ModelAdmin):
     inlines = [SubmissionTestCaseInline, ContestSubmissionInline]
     suit_form_size = {
         'widgets': {
-            'HeavyPreviewAdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL,
             'AceWidget': apps.SUIT_FORM_SIZE_FULL,
         },
     }

@@ -1,13 +1,18 @@
+from django.conf import settings
 from django.contrib import admin
 from django.forms import ModelForm
-from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.translation import ugettext, ugettext_lazy as _
+from martor.widgets import AdminMartorWidget
 from reversion.admin import VersionAdmin
 from suit import apps
 
 from judge.models import Organization
-from judge.widgets import HeavySelect2MultipleWidget, HeavySelect2Widget, HeavyPreviewAdminPageDownWidget
+from judge.widgets import HeavySelect2MultipleWidget, HeavySelect2Widget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
+MATHJAX_URL = getattr(settings, 'MATHJAX_URL', '//cdn.bootcss.com/mathjax/2.7.4/MathJax.js')
 
 
 class OrganizationForm(ModelForm):
@@ -15,9 +20,8 @@ class OrganizationForm(ModelForm):
         widgets = {
             'admins': HeavySelect2MultipleWidget(data_view='profile_select2', attrs={'style': 'width: 100%'}),
             'registrant': HeavySelect2Widget(data_view='profile_select2'),
+            'about': AdminMartorWidget
         }
-        if HeavyPreviewAdminPageDownWidget is not None:
-            widgets['about'] = HeavyPreviewAdminPageDownWidget(preview=reverse_lazy('organization_preview'))
 
 
 class OrganizationAdmin(VersionAdmin):
@@ -30,12 +34,19 @@ class OrganizationAdmin(VersionAdmin):
 
     suit_form_size = {
         'widgets': {
-            'HeavyPreviewAdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL
+            'AdminMartorWidget': apps.SUIT_FORM_SIZE_FULL
         },
     }
 
     class Media:
-        js = ('libs/jquery-cookie.js',)
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+            MATHJAX_URL,
+        )
 
     def show_public(self, obj):
         return format_html(u'<a href="{0}" style="white-space:nowrap;">{1}</a>',

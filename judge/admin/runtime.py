@@ -1,14 +1,20 @@
+from django.conf import settings
 from django.db.models import TextField
 from django.forms import TextInput, ModelForm, ModelMultipleChoiceField
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from martor.widgets import AdminMartorWidget
 from reversion.admin import VersionAdmin
 from suit import apps
 
 from django_ace import AceWidget
 from judge.models import Problem
-from judge.widgets import AdminPagedownWidget, HeavySelect2MultipleWidget
+from judge.widgets import HeavySelect2MultipleWidget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
+MATHJAX_URL = getattr(settings, 'MATHJAX_URL', '//cdn.bootcss.com/mathjax/2.7.4/MathJax.js')
 
 
 class LanguageForm(ModelForm):
@@ -20,8 +26,7 @@ class LanguageForm(ModelForm):
         widget=HeavySelect2MultipleWidget(data_view='problem_select2', attrs={'style': 'width: 100%'}))
 
     class Meta:
-        if AdminPagedownWidget is not None:
-            widgets = {'description': AdminPagedownWidget}
+        widgets = {'description': AdminMartorWidget}
 
 
 class LanguageAdmin(VersionAdmin):
@@ -31,13 +36,20 @@ class LanguageAdmin(VersionAdmin):
     form = LanguageForm
     suit_form_size = {
         'widgets': {
-            'AdminPagedownWidget': apps.SUIT_FORM_SIZE_FULL,
+            'AdminMartorWidget': apps.SUIT_FORM_SIZE_FULL,
             'AceWidget': apps.SUIT_FORM_SIZE_INLINE
         },
     }
 
     class Media:
-        js = ('libs/jquery-cookie.js',)
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+            MATHJAX_URL,
+        )
 
     def save_model(self, request, obj, form, change):
         super(LanguageAdmin, self).save_model(request, obj, form, change)
@@ -78,9 +90,9 @@ class GenerateKeyTextInput(TextInput):
 
 class JudgeAdminForm(ModelForm):
     class Meta:
-        widgets = {'auth_key': GenerateKeyTextInput}
-        if AdminPagedownWidget is not None:
-            widgets['description'] = AdminPagedownWidget
+        widgets = {'auth_key': GenerateKeyTextInput,
+                   'description': AdminMartorWidget,
+                   }
 
 
 class JudgeAdmin(VersionAdmin):
@@ -96,12 +108,20 @@ class JudgeAdmin(VersionAdmin):
     ordering = ['-online', 'name']
     suit_form_size = {
         'fields': {
-            'problems': apps.SUIT_FORM_SIZE_FULL
-        },
-        'widgets': {
-            'AdminPagedownWidget': apps.SUIT_FORM_SIZE_FULL
+            'problems': apps.SUIT_FORM_SIZE_FULL,
+            'description': apps.SUIT_FORM_SIZE_FULL
         },
     }
+
+    class Media:
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+            MATHJAX_URL,
+        )
 
     def get_readonly_fields(self, request, obj=None):
         if obj is not None and obj.online:
@@ -114,7 +134,6 @@ class JudgeAdmin(VersionAdmin):
             return not obj.online
         return result
 
-    if AdminPagedownWidget is not None:
-        formfield_overrides = {
-            TextField: {'widget': AdminPagedownWidget},
-        }
+    formfield_overrides = {
+        TextField: {'widget': AdminMartorWidget},
+    }

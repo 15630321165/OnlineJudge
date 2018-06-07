@@ -1,20 +1,26 @@
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse_lazy, reverse
+from django.core.urlresolvers import reverse
 from django.db import transaction, connection
 from django.db.models import TextField, Q
 from django.forms import ModelForm, ModelMultipleChoiceField
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _, ungettext
+from martor.widgets import AdminMartorWidget
 from reversion.admin import VersionAdmin
 from suit import apps
 
 from judge.models import Contest, ContestProblem, Profile, Rating
 from judge.ratings import rate_contest
-from judge.widgets import HeavySelect2Widget, HeavySelect2MultipleWidget, AdminPagedownWidget, Select2MultipleWidget, \
-    HeavyPreviewAdminPageDownWidget, Select2Widget
+from judge.widgets import HeavySelect2Widget, HeavySelect2MultipleWidget, Select2MultipleWidget, \
+    Select2Widget
+
+ACE_BASE_URL = getattr(settings, 'ACE_BASE_URL', '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/')
+HIGHLIGHT_BASE_URL = getattr(settings, 'HIGHLIGHT_BASE_URL', '//cdn.bootcss.com/highlight.js/9.12.0/')
+MATHJAX_URL = getattr(settings, 'MATHJAX_URL', '//cdn.bootcss.com/mathjax/2.7.4/MathJax.js')
 
 
 class HeavySelect2Widget(HeavySelect2Widget):
@@ -44,11 +50,9 @@ class ContestTagAdmin(admin.ModelAdmin):
             'contests': apps.SUIT_FORM_SIZE_INLINE,
         },
     }
-
-    if AdminPagedownWidget is not None:
-        formfield_overrides = {
-            TextField: {'widget': AdminPagedownWidget},
-        }
+    formfield_overrides = {
+        TextField: {'widget': AdminMartorWidget},
+    }
 
     def save_model(self, request, obj, form, change):
         super(ContestTagAdmin, self).save_model(request, obj, form, change)
@@ -88,11 +92,9 @@ class ContestForm(ModelForm):
             'organizers': HeavySelect2MultipleWidget(data_view='profile_select2', attrs={'style': 'width: 100%'}),
             'organizations': HeavySelect2MultipleWidget(data_view='organization_select2',
                                                         attrs={'style': 'width: 100%'}),
-            'tags': Select2MultipleWidget
+            'tags': Select2MultipleWidget,
+            'description': AdminMartorWidget,
         }
-
-        if HeavyPreviewAdminPageDownWidget is not None:
-            widgets['description'] = HeavyPreviewAdminPageDownWidget(preview=reverse_lazy('contest_preview'))
 
 
 class ContestAdmin(VersionAdmin):
@@ -116,13 +118,19 @@ class ContestAdmin(VersionAdmin):
 
     suit_form_size = {
         'widgets': {
-            'AdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL,
-            'HeavyPreviewAdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL
+            'AdminMartorWidget': apps.SUIT_FORM_SIZE_FULL,
         },
     }
 
     class Media:
-        js = ('libs/jquery-cookie.js',)
+        js = (
+            ACE_BASE_URL + 'ace.js',
+            ACE_BASE_URL + 'ext-language_tools.js',
+            ACE_BASE_URL + 'mode-markdown.js',
+            ACE_BASE_URL + 'theme-github.js',
+            HIGHLIGHT_BASE_URL + 'highlight.min.js',
+            MATHJAX_URL,
+        )
 
     def get_queryset(self, request):
         queryset = Contest.objects.all()
@@ -223,13 +231,9 @@ class ContestParticipationAdmin(admin.ModelAdmin):
 
     suit_form_size = {
         'widgets': {
-            'AdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL,
-            'HeavyPreviewAdminPageDownWidget': apps.SUIT_FORM_SIZE_FULL
+            'AdminMartorWdiget': apps.SUIT_FORM_SIZE_FULL,
         },
     }
-
-    class Media:
-        js = ('libs/jquery-cookie.js',)
 
     def get_queryset(self, request):
         return super(ContestParticipationAdmin, self).get_queryset(request).only(

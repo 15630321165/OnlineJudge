@@ -1,7 +1,6 @@
 Django>=1.11,<3
 django_compressor
 django-mptt>=0.8.4,<0.10
--e git://github.com/DMOJ/django-pagedown.git#egg=django-pagedown
 django-registration-redux>=1.9,<2.5
 django-reversion
 django-social-share
@@ -27,3 +26,4 @@ django_anymail
 websocket-client
 https://github.com/darklow/django-suit/tarball/v2
 django-import-export>=1.0.1,<2
+https://github.com/monouno/django-markdown-editor/archive/master.zip
