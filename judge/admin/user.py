@@ -17,11 +17,12 @@ class UserResource(resources.ModelResource):
     organizations = fields.Field(widget=widgets.ManyToManyWidget(model=Organization, field='key'),
                                  attribute='profile__organizations')
 
-    _profile = Profile(language=Language.objects.get(key=DEFAULT_USER_LANGUAGE))
+    _profile = Profile()
 
     def init_instance(self, row=None):
         usr = super(UserResource, self).init_instance(row)
         usr.is_active = True
+        self._profile.language = Language.objects.get(key=DEFAULT_USER_LANGUAGE)
         usr.profile = self._profile
         return usr
 
